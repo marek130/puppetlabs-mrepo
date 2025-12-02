@@ -28,7 +28,7 @@
 # Values: yum,apt,repomd
 #
 # [*update*]
-# The schedule for updating.The 'now' will update the repo on every run of 
+# The schedule for updating.The 'now' will update the repo on every run of
 # puppet. Be warned that this could be a very lengthy process on the first run.
 # Default: nightly
 # Values: now, nightly, weekly, never
@@ -115,19 +115,19 @@
 # Copyright 2011 Puppet Labs, unless otherwise noted
 #
 define mrepo::repo (
-  $ensure,
+  Enum['present', 'absent']                                      $ensure,
+  Enum['i386', 'i586', 'x86_64', 'ppc', 's390', 's390x', 'ia64'] $arch,
+  Enum['now', 'nightly', 'weekly', 'never']                      $update        = 'nightly',
+  Enum['std', 'ncc', 'rhn']                                      $type          = 'std',
   $release,
-  $arch,
   $urls          = {},
   $metadata      = 'repomd',
-  $update        = 'nightly',
   $hour          = '0',
   $minute        = '0',
   $iso           = '',
   $repotitle     = $name,
   $gen_timeout   = '1200',
   $sync_timeout  = '1200',
-  $type          = 'std',
   $typerelease   = undef,
   $mrepo_env     = '',
   $mrepo_command = '/usr/bin/mrepo',
@@ -136,11 +136,6 @@ define mrepo::repo (
 ) {
   include mrepo
   include mrepo::params
-
-  validate_re($ensure, "^present$|^absent$")
-  validate_re($arch, "^i386$|^i586$|^x86_64$|^ppc$|^s390$|^s390x$|^ia64$")
-  validate_re($update, "^now$|^nightly$|^weekly$|^never$")
-  validate_re($type  , "^std$|^ncc$|^rhn$")
 
   # mrepo tries to be clever, and if the arch is the suffix of the name will
   # fold the two, but if the name isn't x86_64 or i386, no folding occurs.

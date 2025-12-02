@@ -62,7 +62,7 @@
 #
 # [*genid_command*]
 # The base command to use to generate a systemid for RHN (mrepo::repo::rhn).
-# Default: /usr/bin/gensystemid 
+# Default: /usr/bin/gensystemid
 #
 # [*mailto*]
 #
@@ -91,6 +91,13 @@
 # Copyright 2011 Puppet Labs, unless otherwise noted
 #
 class mrepo::params (
+  Enum['git', 'package'] $source             = 'package',
+  Enum['git', 'https']   $git_proto          = 'git',
+  Boolean                $rhn                = false,
+  Hash                   $descriptions       = {},
+  Pattern[/^\d+$/]       $priority           = '10',
+  Pattern[/^\d+$/]       $port               = '80',
+  Optional[Boolean]      $selinux            = undef,
   $src_root           = '/var/mrepo',
   $www_root           = '/var/www/mrepo',
   $www_servername     = 'mrepo',
@@ -98,21 +105,14 @@ class mrepo::params (
   $www_ip_based       = false,
   $user               = 'apache',
   $group              = 'apache',
-  $source             = 'package',
   $ensure_src         = 'latest',
-  $selinux            = undef,
-  $rhn                = false,
   $rhn_config         = false,
   $rhn_username       = '',
   $rhn_password       = '',
   $genid_command      = '/usr/bin/gensystemid',
   $mailto             = 'UNSET',
-  $git_proto          = 'git',
-  $descriptions       = {},
   $http_proxy         = '',
   $https_proxy        = '',
-  $priority           = '10',
-  $port               = '80',
   $smtp_server        = 'UNSET',
   $hardlink           = 'UNSET',
   $lftp_cleanup       = 'UNSET',
@@ -120,16 +120,15 @@ class mrepo::params (
   $reposync_options   = 'UNSET',
   $reposync_cleanup   = 'UNSET',
 ) {
-  validate_re($source, '^git$|^package$')
-  validate_re($git_proto, '^git$|^https$')
-  validate_re($priority, '^\d+$')
-  validate_re($port, '^\d+$')
-  validate_bool($rhn)
-  validate_hash($descriptions)
 
   if $rhn {
-    validate_re($rhn_username, '.+')
-    validate_re($rhn_password, '.+')
+    if $rhn_username !~  /.+/ {
+      fail("Variable rhn_username must match regex /.+/")
+    }
+
+    if $rhn_password !~ /.+/ {
+      fail("Variable rhn_password must match regex /.+/")
+    }
   }
 
 
@@ -147,7 +146,6 @@ class mrepo::params (
       }
     }
     default: {
-      validate_bool($selinux)
       $use_selinux = $selinux
     }
   }
